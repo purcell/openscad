@@ -193,6 +193,8 @@ FORMS   += src/MainWindow.ui \
            src/Preferences.ui \
            src/OpenCSGWarningDialog.ui \
            src/AboutDialog.ui \
+           src/ProgressWidget.ui \
+           src/renderwindow.ui \
            src/FontListDialog.ui \
            src/ProgressWidget.ui
 
@@ -284,7 +286,10 @@ HEADERS += src/typedefs.h \
            src/system-gl.h \
            src/CsgInfo.h \
            \
-           src/AutoUpdater.h
+           src/AutoUpdater.h \
+    src/renderwindow.h \
+    src/legacyeditor.h \
+    src/scintillaeditor.h
 
 SOURCES += src/version_check.cc \
            src/ProgressWidget.cc \
@@ -367,7 +372,10 @@ SOURCES += src/version_check.cc \
            \
            src/openscad.cc \
            src/mainwin.cc \
-	   src/FontListDialog.cc
+    src/renderwindow.cpp \
+    src/legacyeditor.cc \
+	   src/FontListDialog.cc \
+    src/scintillaeditor.cpp
 
 # ClipperLib
 SOURCES += src/polyclipping/clipper.cpp

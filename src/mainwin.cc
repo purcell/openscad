@@ -167,6 +167,13 @@ MainWindow::MainWindow(const QString &filename)
 	: root_inst("group"), font_list_dialog(NULL), tempFile(NULL), progresswidget(NULL)
 {
 	setupUi(this);
+	legacy = new LegacyEditor(editorDockContents);
+        editor = legacy;
+
+	scintilla = new ScintillaEditor(editorDockContents);
+	//editor = scintilla;
+	editor->setMinimumSize(editorDockContents->sizeHint());
+
 	setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
 	setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
 	setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
@@ -375,6 +382,7 @@ MainWindow::MainWindow(const QString &filename)
 	connect(this->viewActionHide, SIGNAL(triggered()), this, SLOT(hideConsole()));
 	connect(this->viewActionZoomIn, SIGNAL(triggered()), qglview, SLOT(ZoomIn()));
 	connect(this->viewActionZoomOut, SIGNAL(triggered()), qglview, SLOT(ZoomOut()));
+    connect(this->viewDetatchWindow, SIGNAL(triggered()), this, SLOT(newDetachWindow()));
 
 	// Help menu
 	connect(this->helpActionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
@@ -448,7 +456,8 @@ MainWindow::MainWindow(const QString &filename)
 	
 	connect(this->editorDock, SIGNAL(topLevelChanged(bool)), this, SLOT(editorTopLevelChanged(bool)));
 	connect(this->consoleDock, SIGNAL(topLevelChanged(bool)), this, SLOT(consoleTopLevelChanged(bool)));
-	
+    ren = 0;
+    widgetAtHome = true;
 	// display this window and check for OpenGL 2.0 (OpenCSG) support
 	viewModeThrownTogether();
 	show();
@@ -690,6 +699,26 @@ void MainWindow::updateTVal()
 			this->e_tval->setText(txt);
 		}
 	}
+}
+
+void MainWindow::newDetachWindow()
+{
+    QGLView *newglview = this->qglview;
+    if(ren==0)
+    {
+        ren = new renderWindow(this);
+        connect(ren, SIGNAL(passWidget(QGLWidget*)), this, SLOT(receiveWidget(QGLWidget*)));
+    }
+    ren->receiveWidget(newglview);
+    ren->show();
+    widgetAtHome = false;
+}
+
+void MainWindow::receiveWidget(QGLWidget *widget)
+{
+    this->verticalLayout_3->addWidget(widget);
+    widgetAtHome = true;
+
 }
 
 void MainWindow::refreshDocument()
@@ -1400,6 +1429,7 @@ void MainWindow::compileTopLevelDocument()
 	resetPrintedDeprecations();
 
 	this->last_compiled_doc = editor->toPlainText();
+
 	std::string fulltext =
 		std::string(this->last_compiled_doc.toLocal8Bit().constData()) +
 		"\n" + commandline_commands;
@@ -1987,7 +2017,7 @@ void MainWindow::viewModeAnimate()
 
 void MainWindow::animateUpdateDocChanged()
 {
-	QString current_doc = editor->toPlainText();
+	QString current_doc = editor->toPlainText(); 
 	if (current_doc != last_compiled_doc)
 		animateUpdate();
 }
